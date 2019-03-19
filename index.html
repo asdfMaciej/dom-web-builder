@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pl-PL">
+<head>
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="vue-swatches.min.css">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>domek</title>
+	<script src="vue.js"></script>
+	<script src="vue-swatches.min.js"></script>
+	<script src="backend.js"></script>
+</head>
+<body>
+	<div id="app">
+		<div id="dom-preview" v-if="view == 'dom'" v-html="elementsTree.render()">
+		</div>
+
+		<div id="html-preview" v-if="view == 'html'">
+			{{elementsTree.renderHTML()}}
+		</div>
+
+		<div id="edit-element" v-if="view == 'edit'">
+			<div style="padding: 8px">
+				<h1>Tag:</h1>
+				<input type="radio" value="div" name="tag" v-model="editTag"> <b>div</b> - for block elements<br>
+				<input type="radio" value="span" name="tag" v-model="editTag"> <b>span</b> - for inline elements
+			</div>
+
+			<div style="padding: 8px">
+				<h1>Style:</h1>
+				<b>padding: </b>
+				<input type="text" v-model="editStyle.padding" name="padding" placeholder="Padding (top, right, bottom, left)"><br>
+
+				<b>margin: </b>
+				<input type="text" v-model="editStyle.margin" name="margin" placeholder="Margin (top, right, bottom, left)"><br>
+
+				<b>border: </b>
+				<input type="text" v-model="editStyle.border" name="border" placeholder="Border (width, style, color)"><br>
+
+				<b>background color: </b>
+				<input type="checkbox" v-model="editStyle['background-color']">
+				<div v-if="editStyle['background-color']">
+					<swatches v-model="editStyle['background-color-hex']" colors="text-advanced"></swatches>
+				</div>
+
+				<b>text color: </b>
+				<input type="checkbox" v-model="editStyle.color">
+				<div v-if="editStyle.color">
+					<swatches v-model="editStyle['color-hex']" colors="text-advanced"></swatches>
+				</div>
+			</div>
+
+			<button @click="finishEdit">Finish</button>
+		</div>
+
+		<div id="dom-control">
+			<div id="controls">
+				<button @click="clear">Clear DOM</button>
+				<button @click="show('html')" v-if="view != 'html'">Show HTML</button>
+				<button @click="show('dom')" v-if="view != 'dom'">Show DOM</button>
+			</div>
+			<div id="dom-verbose">
+				<element-mini v-bind:element="elementsTree"></element-mini>
+			</div>
+		</div>
+	</div>
+</body>
+
+
+<script type="text/x-template" id="element-mini-template">
+	<div class="element-mini">
+		<h2>{{element.tag}}</h2>
+		<div v-for="value, property in element.properties">
+			<b>{{property}}</b> - {{value}}
+		</div>
+		<button v-if="!('tree-parent' in element.properties)" @click="remove">Delete</button>
+		<button @click="add">Add</button>
+		<button @click="edit">Edit</button>
+		<element-mini v-for="element in element.children" v-bind:element="element">
+		
+		</element-mini>
+	</div>
+</script>
+
+<script src="frontend.js"></script>
+</html>
