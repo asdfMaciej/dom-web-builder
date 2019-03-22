@@ -3,14 +3,18 @@ function randomID() {  // src: stackoverflow, purpose: random css id
 }
 
 class DOMElement {
-	constructor(tag = "div", properties = {}, children = []) {
+	constructor(tag = "div", properties = {}, children = [], cssAttributes = {}) {
 		this.tag = tag;
 		this.properties = properties;
 		// tree-parent is a reserved property
 
+		this.cssAttributes = cssAttributes; // updated by frontend in finishEdit
+		// unintuitive and implicit - should find a better solution
+		// used for updating edit view
 		this.children = children;
-		this.verbose = "";
 
+		this.possibleParent = true;
+		this.editable = true;
 		this.id = randomID();	
 	}
 
@@ -37,36 +41,31 @@ class DOMElement {
 		return html;
 	}
 
-	renderHTML() {
-		let html = this.render();
-		html = html.replace("\n", "<br>");
-		return html;
-	}
-
 	remove(id) {
 		for (let i in this.children) {
 			let child = this.children[i];
 			if (child.id === id) {
 				this.children.splice(i, 1);
 				return;
+			} else if (child.possibleParent) {
+				child.remove(id);
 			}
-			child.remove(id);
 		}
-	}
-
-	describe() {
-		let description = "<" + this.tag + "> ";
-		description += "element with " + Object.keys(this.properties).length + " properties - '";
-		description += this.verbose + "'";
-
-		return description;
 	}
 }
 
 class DOMText {
 	constructor(message) {
+		this.tag = "text";
 		this.message = message;
 		this.message = this.message.replace("\n", "<br>");
+		this.children = [];
+		this.verbose = "";
+		this.properties = [];
+
+		this.possibleParent = false;
+		this.editable = false;
+		this.id = randomID();
 	}
 
 	render() {

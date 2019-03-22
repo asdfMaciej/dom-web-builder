@@ -15,7 +15,7 @@ button {padding: 4px; margin: 4px; border: 0px;}
 	min-height: 100vh;
 }
 
-#dom-preview, #html-preview, #edit-element {
+#dom-preview, #html-preview, #edit-element, #add-select, #add-text, #add-template, #add-element {
 	flex: 1;
 	background-color: #EEEEEE;
 }
@@ -62,4 +62,9 @@ button {padding: 4px; margin: 4px; border: 0px;}
 }
 .flex-200w {
 	flex: 0 0 200px;
+}
+
+textarea.input-text {
+	width: 100%;
+	min-height: 400px;
 }

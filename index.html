@@ -16,37 +16,186 @@
 		</div>
 
 		<div id="html-preview" v-if="view == 'html'">
-			{{elementsTree.renderHTML()}}
+			<pre>
+			{{elementsTree.render()}}
+			</pre>
+		</div>
+
+		<div id="add-select" v-if="view == 'add-select'">
+			<button @click="show('add-template')">Add a template</button><br>
+			<button @click="show('add-element')">Add an element</button><br>
+			<button @click="show('add-text')">Add text</button><br>
+		</div>
+
+		<div id="add-text" v-if="view == 'add-text'">
+			<textarea class="input-text" v-model="addTextarea" placeholder="Input text there, you can use HTML tags to style it"></textarea>
+			<button @click="addText">Done</button>
+		</div>
+		
+		<div id="add-element" v-if="view == 'add-element'">
+			<button @click="add('div')">Add an empty div</button><br>
+			<button @click="add('span')">Add an empty span</button><br>
+			<button @click="add('img')">Add an image</button><br>
+			<button @click="add('input')">Add an input</button><br>
+		</div>
+
+		<div id="add-template" v-if="view == 'add-template'">
+			<button @click="addTemplate('holy-grail')">Holy grail</button>
 		</div>
 
 		<div id="edit-element" v-if="view == 'edit'">
 			<div style="padding: 8px">
 				<h1>Tag:</h1>
-				<input type="radio" value="div" name="tag" v-model="editTag"> <b>div</b> - for block elements<br>
-				<input type="radio" value="span" name="tag" v-model="editTag"> <b>span</b> - for inline elements
+				<input type="radio" value="div" name="tag" v-model="editTag"> 
+					<b>div</b> - for block elements<br>
+				<input type="radio" value="span" name="tag" v-model="editTag"> 
+					<b>span</b> - for inline elements<br>
+				<input type="radio" value="img" name="tag" v-model="editTag"> 
+					<b>img</b> - for embedding images<br>
+				<input type="radio" value="input" name="tag" v-model="editTag"> 
+					<b>input</b> - for user input
+			</div>
+
+			<div style="padding: 8px">
+				<h1>Display:</h1>
+				<input type="radio" value="block" name="display" v-model="editStyle.display">
+					<b>block</b> - div - starts on a new line and takes up horizontal space<br>
+				<input type="radio" value="inline" name="display" v-model="editStyle.display">
+					<b>inline</b> - span - inline, one can increase left/right space, but not top/down<br>
+				<input type="radio" value="inline-block" name="display" v-model="editStyle.display">
+					<b>inline-block</b> - inline, but can increase space on all 4 sides<br>
+				<input type="radio" value="flex" name="display" v-model="editStyle.display">
+					<b>flex</b> - for a block flexbox parent container<br>
+				<input type="radio" value="inline-flex" name="display" v-model="editStyle.display">
+					<b>inline-flex</b> - for an inline flexbox parent container<br>
+
+				<br>
+
+				<b>flex (for child element):</b>
+				<input type="text" v-model="editStyle.flex" name="flex" placeholder="flex-grow flex-shrink flex-basis (0 1 auto)"><br>
+
+				<br>
+
+				<b>max-width:</b>
+				<input type="text" v-model="editStyle['max-width']" placeholder="Maximum width of the element"><br>
+				<b>min-width:</b>
+				<input type="text" v-model="editStyle['min-width']" placeholder="Minimum width of the element"><br>
+				<b>width:</b>
+				<input type="text" v-model="editStyle['width']" placeholder="Width (auto, 1 em, vw, px, vh, [...])"><br>
+
+				<br>
+
+				<b>max-height:</b>
+				<input type="text" v-model="editStyle['max-height']" placeholder="Maximum height of the element"><br>
+				<b>min-height:</b>
+				<input type="text" v-model="editStyle['min-height']" placeholder="Minimum height of the element"><br>
+				<b>height:</b>
+				<input type="text" v-model="editStyle['height']" placeholder="Height (auto, 1 em, vw, px, vh, [...])"><br>
+
+				<br>
+
+				<b>overflow:</b>
+				<input type="text" v-model="editStyle['overflow']" placeholder="Overflow (visible, auto, hidden, scroll)"><br>
+			</div>
+
+			<div style="padding: 8px" v-if="editStyle.display == 'flex' || editStyle.display == 'inline-flex'">
+				<h1>Flexbox parent:</h1>
+				<b>flex-direction</b> - defines the direction items are placed in the container:<br>
+				<input type="radio" value="row" name="flex-direction" v-model="editStyle['flex-direction']">
+					<b>row</b> - row, left to right<br>
+				<input type="radio" value="row-reverse" name="flex-direction" v-model="editStyle['flex-direction']">
+					<b>row-reverse</b> - row, right to left<br>
+				<input type="radio" value="column" name="flex-direction" v-model="editStyle['flex-direction']">
+					<b>column</b> - column, top to bottom<br>
+				<input type="radio" value="column-reverse" name="flex-direction" v-model="editStyle['flex-direction']">
+					<b>column-reverse</b> - bottom to top<br>
+
+				<br>
+
+				<b>flex-wrap</b> - defines if items must fit in one line:<br>
+				<input type="radio" value="nowrap" name="flex-wrap" v-model="editStyle['flex-wrap']">
+					<b>nowrap</b> - items will fit on one line by shrinking down<br>
+				<input type="radio" value="wrap" name="flex-wrap" v-model="editStyle['flex-wrap']">
+					<b>wrap</b> - once the window gets smaller, they'll wrap onto the next line<br>
+				<input type="radio" value="wrap-reverse" name="flex-wrap" v-model="editStyle['flex-wrap']">
+					<b>wrap-reverse</b> - the wrap is from bottom to top, useful for footers<br>
+				
+				<br>
+
+
+				<b>justify-content</b> - how items are aligned along the X axis, distributes the remaining free space between them<br>
+				<input type="radio" value="flex-start" name="justify-content" v-model="editStyle['justify-content']">
+					<b>flex-start</b> - default alignment, left to right with items packed close<br>
+				<input type="radio" value="flex-end" name="justify-content" v-model="editStyle['justify-content']">
+					<b>flex-end</b> - right to left, with items packed close as well<br>
+				<input type="radio" value="center" name="justify-content" v-model="editStyle['justify-content']">
+					<b>center</b> - centers the items, with items packed close<br>
+				<input type="radio" value="space-between" name="justify-content" v-model="editStyle['justify-content']">
+					<b>space-between</b> - the space is distributed evenly; first item is leftmost, last is rightmost<br>
+				<input type="radio" value="space-around" name="justify-content" v-model="editStyle['justify-content']">
+					<b>space-around</b> - 2 units of space between items, 1 unit between item and container<br>
+				<input type="radio" value="space-evenly" name="justify-content" v-model="editStyle['justify-content']">
+					<b>space-evenly</b> - equal units of space between both items and container wall <br>
+
+				<br>
+				
+				<b>align-items</b> - how items are laid out vertically in a single line, matters most when line is higher than some of items or items are of various heights<br>
+				note that this description is for direction: row, with column the axes are reversed<br> 
+				<input type="radio" value="stretch" name="align-items" v-model="editStyle['align-items']">
+					<b>stretch</b> - stretches items to fill the container [with respect to min/max-width]<br>
+				<input type="radio" value="flex-start" name="align-items" v-model="editStyle['align-items']">
+					<b>flex-start</b> - aligns starting from top, space is on bottom<br>
+				<input type="radio" value="flex-end" name="align-items" v-model="editStyle['align-items']">
+					<b>flex-end</b> - aligns starting from bottom, space is on top<br>
+				<input type="radio" value="center" name="align-items" v-model="editStyle['align-items']">
+					<b>center</b> - aligns with items on the center line<br>
+				<input type="radio" value="baseline" name="align-items" v-model="editStyle['align-items']">
+					<b>baseline</b> - aligns to match the baselines<br>
+				
+				<br>
+
+				<b>align-content</b> - when the container is bigger vertically than all of the lines, and you have free space on the Y axis [reverse for flex-direction column]<br>
+				<input type="radio" value="stretch" name="align-content" v-model="editStyle['align-content']">
+					<b>stretch</b> - lines stretch to take up the remaining space<br>
+				<input type="radio" value="flex-start" name="align-content" v-model="editStyle['align-content']">
+					<b>flex-start</b> - aligns starting from top, space is on bottom<br>
+				<input type="radio" value="flex-end" name="align-content" v-model="editStyle['align-content']">
+					<b>flex-end</b> - aligns starting from bottom, space is on top<br>
+				<input type="radio" value="center" name="align-content" v-model="editStyle['align-content']">
+					<b>center</b> - lines are packed in center, space on top and bottom<br>
+				<input type="radio" value="space-between" name="align-content" v-model="editStyle['align-content']">
+					<b>space-between</b> - evenly distributed, 1st element is topmost and last is bottommost<br>
+				<input type="radio" value="space-around" name="align-content" v-model="editStyle['align-content']">
+					<b>space-around</b> - evenly distributed, but equal space between each line and boundaries of container<br>
 			</div>
 
 			<div style="padding: 8px">
 				<h1>Style:</h1>
 				<b>padding: </b>
-				<input type="text" v-model="editStyle.padding" name="padding" placeholder="Padding (top, right, bottom, left)"><br>
+				<input type="text" v-model="editStyle.padding" placeholder="Padding (top, right, bottom, left)"><br>
 
 				<b>margin: </b>
-				<input type="text" v-model="editStyle.margin" name="margin" placeholder="Margin (top, right, bottom, left)"><br>
+				<input type="text" v-model="editStyle.margin" placeholder="Margin (top, right, bottom, left)"><br>
 
 				<b>border: </b>
-				<input type="text" v-model="editStyle.border" name="border" placeholder="Border (width, style, color)"><br>
+				<input type="text" v-model="editStyle.border" placeholder="Border (width, style, color)"><br>
 
+				<b>border-radius: </b>
+				<input type="text" v-model="editStyle['border-radius']" placeholder="Border radius (top left, top right, down right, down left)"><br>
+				
+				<b>font-size: </b>
+				<input type="text" v-model="editStyle['font-size']" placeholder="Font size"><br>
+				
 				<b>background color: </b>
-				<input type="checkbox" v-model="editStyle['background-color']">
-				<div v-if="editStyle['background-color']">
-					<swatches v-model="editStyle['background-color-hex']" colors="text-advanced"></swatches>
+				<input type="checkbox" v-model="showBGColor"><br>
+				<div v-if="showBGColor">
+					<swatches v-model="editStyle['background-color']" colors="text-advanced"></swatches>
 				</div>
 
 				<b>text color: </b>
-				<input type="checkbox" v-model="editStyle.color">
-				<div v-if="editStyle.color">
-					<swatches v-model="editStyle['color-hex']" colors="text-advanced"></swatches>
+				<input type="checkbox" v-model="showColor"><br>
+				<div v-if="showColor">
+					<swatches v-model="editStyle.color" colors="text-advanced"></swatches>
 				</div>
 			</div>
 
@@ -74,8 +223,8 @@
 			<b>{{property}}</b> - {{value}}
 		</div>
 		<button v-if="!('tree-parent' in element.properties)" @click="remove">Delete</button>
-		<button @click="add">Add</button>
-		<button @click="edit">Edit</button>
+		<button v-if="element.possibleParent" @click="add">Add</button>
+		<button v-if="element.editable" @click="edit">Edit</button>
 		<element-mini v-for="element in element.children" v-bind:element="element">
 		
 		</element-mini>
